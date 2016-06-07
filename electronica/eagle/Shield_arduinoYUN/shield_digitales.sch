@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.5.0">
+<eagle version="7.6.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -4250,9 +4250,9 @@ Source: http://optoelectronics.perkinelmer.com/content/Datasheets/DTS_vt800serie
 <label x="-20.32" y="81.28" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="D3"/>
-<wire x1="7.62" y1="76.2" x2="5.08" y2="76.2" width="0.1524" layer="91"/>
-<label x="5.08" y="76.2" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="D4"/>
+<wire x1="7.62" y1="73.66" x2="5.08" y2="73.66" width="0.1524" layer="91"/>
+<label x="5.08" y="73.66" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="TRIG" class="0">
@@ -4262,9 +4262,9 @@ Source: http://optoelectronics.perkinelmer.com/content/Datasheets/DTS_vt800serie
 <label x="-20.32" y="78.74" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="D4"/>
-<wire x1="7.62" y1="73.66" x2="5.08" y2="73.66" width="0.1524" layer="91"/>
-<label x="5.08" y="73.66" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="D3"/>
+<wire x1="7.62" y1="76.2" x2="5.08" y2="76.2" width="0.1524" layer="91"/>
+<label x="5.08" y="76.2" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="ANALOG" class="0">
@@ -4286,9 +4286,9 @@ Source: http://optoelectronics.perkinelmer.com/content/Datasheets/DTS_vt800serie
 <label x="63.5" y="91.44" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="D5"/>
-<wire x1="7.62" y1="71.12" x2="5.08" y2="71.12" width="0.1524" layer="91"/>
-<label x="5.08" y="71.12" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="D2/SDA"/>
+<wire x1="7.62" y1="78.74" x2="5.08" y2="78.74" width="0.1524" layer="91"/>
+<label x="5.08" y="78.74" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="5V" class="0">
@@ -4340,11 +4340,6 @@ Source: http://optoelectronics.perkinelmer.com/content/Datasheets/DTS_vt800serie
 <label x="-20.32" y="63.5" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="TEMPERATURA" gate="A" pin="3"/>
-<wire x1="58.42" y1="93.98" x2="63.5" y2="93.98" width="0.1524" layer="91"/>
-<label x="63.5" y="93.98" size="1.778" layer="95"/>
-</segment>
-<segment>
 <pinref part="R2" gate="G$1" pin="1"/>
 <wire x1="83.82" y1="60.96" x2="83.82" y2="58.42" width="0.1524" layer="91"/>
 <label x="83.82" y="58.42" size="1.778" layer="95"/>
@@ -4359,17 +4354,27 @@ Source: http://optoelectronics.perkinelmer.com/content/Datasheets/DTS_vt800serie
 <wire x1="55.88" y1="33.02" x2="55.88" y2="30.48" width="0.1524" layer="91"/>
 <label x="55.88" y="30.48" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="MOTOR" gate="G$1" pin="1"/>
+<wire x1="106.68" y1="83.82" x2="99.06" y2="83.82" width="0.1524" layer="91"/>
+<label x="99.06" y="83.82" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="TEMPERATURA" gate="A" pin="3"/>
+<wire x1="58.42" y1="93.98" x2="63.5" y2="93.98" width="0.1524" layer="91"/>
+<label x="63.5" y="93.98" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="PWM" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="D6"/>
-<wire x1="7.62" y1="68.58" x2="5.08" y2="68.58" width="0.1524" layer="91"/>
-<label x="5.08" y="68.58" size="1.778" layer="95"/>
-</segment>
 <segment>
 <pinref part="R1" gate="G$1" pin="2"/>
 <wire x1="71.12" y1="71.12" x2="68.58" y2="71.12" width="0.1524" layer="91"/>
 <label x="68.58" y="71.12" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="D5"/>
+<wire x1="7.62" y1="71.12" x2="5.08" y2="71.12" width="0.1524" layer="91"/>
+<label x="5.08" y="71.12" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$1" class="0">
@@ -4389,13 +4394,6 @@ Source: http://optoelectronics.perkinelmer.com/content/Datasheets/DTS_vt800serie
 <pinref part="Q1" gate="G$1" pin="D"/>
 <wire x1="106.68" y1="81.28" x2="99.06" y2="81.28" width="0.1524" layer="91"/>
 <wire x1="99.06" y1="81.28" x2="99.06" y2="73.66" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="12V" class="0">
-<segment>
-<pinref part="MOTOR" gate="G$1" pin="1"/>
-<wire x1="106.68" y1="83.82" x2="99.06" y2="83.82" width="0.1524" layer="91"/>
-<label x="99.06" y="83.82" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="FOTORESISTENCIA" class="0">
