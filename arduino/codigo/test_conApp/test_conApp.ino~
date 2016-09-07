@@ -1,0 +1,311 @@
+#include <NewPing.h>
+#include "DHT.h" 
+#include <Bridge.h>
+#include "HttpClient.h"
+#include <BridgeServer.h>
+#include <BridgeClient.h>
+#include <Thread.h>
+
+// Listen to the default port 5555, the Yún webserver
+// will forward there all the HTTP requests you send
+BridgeServer server;
+
+Thread appThread = Thread();
+
+void callback() {
+   BridgeClient client = server.accept();
+
+  // There is a new client?
+  if (client) {
+    // Process request
+    process(client);
+          Serial.print("COOL! I'm running on: ");
+    Serial.println(millis());
+
+    // Close connection and free resources.
+    client.stop();
+
+  }
+
+  
+}
+
+//thingspeak
+String thingspeak_write_API_key = "FSHJLAKF63DIZ9N2";
+
+//dht
+#define DHTPIN 7  
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+//sonar
+#define TRIG 3
+#define ECHO 4
+NewPing sonar(TRIG,ECHO,25);
+
+//bomba
+#define PWM  5
+
+//humedad tierra
+#define HT 7
+
+//arreglo
+#define ARRAYLENGTH 3
+
+//#define interruptPin 2;
+
+//inicializar maq. estado
+int state = 0;
+
+
+void setup() {
+  // Initialize Bridge
+  Bridge.begin();
+  // Initialize Console
+  Console.begin();
+  //inicializar dht
+  dht.begin();
+  //setup sonar
+  pinMode(ECHO, INPUT);
+  pinMode(TRIG,OUTPUT);
+  //bomba
+  pinMode(PWM, OUTPUT);
+  //humedad tierra
+  pinMode(HT, INPUT);
+  //fotorresitencia
+  pinMode(A1, INPUT);
+  //led13
+  pinMode(13, OUTPUT);
+  //analogo sonar
+  pinMode(A3, OUTPUT);
+
+
+  appThread.onRun(callback);
+  appThread.setInterval(2000);
+  appThread.enabled = true;
+
+  
+
+
+// const byte ledPin = 13;
+//const byte interruptPin = 2;
+////volatile bytze state = LOW;
+//
+//void setup() {
+//  pinMode(ledPin, OUTPUT);
+//  pinMode(interruptPin, INPUT_PULLUP);
+//  attachInterrupt(digitalPinToInterrupt(interruptPin), blink, CHANGE);
+//}
+//
+//void loop() {
+//  digitalWrite(ledPin, state);
+//}
+//
+//void blink() {
+//  state = !state;
+//}
+
+  // Listen for incoming connection only from localhost
+  // (no one from the external network could connect)
+  server.listenOnLocalhost();
+  server.begin();
+}
+
+void loop() {
+  if (appThread.shouldRun()) {
+      appThread.run();
+  }
+
+   switch (state){
+    case 0:  // Medir 
+//if (analogRead(HT) > 600 && sonar.ping_cm()< 16){
+        state = 1;
+//      }
+      delay(50);
+      break;
+
+    case 1: // Regar
+//      analogWrite(PWM, 128);
+//      if (analogRead(HT) < 600){
+        state = 2;
+//      }
+      delay(50);
+      break;
+
+    case 2: // Imprimir
+      analogWrite(PWM,0); //parar de regar
+      //float data[ARRAYLENGTH] = {dht.readHumidity(), dht.readTemperature(), promedioSonar(5)};
+      float data[ARRAYLENGTH] = {50,20,10};
+      postToThingSpeak(thingspeak_write_API_key, data);
+      delay(1000); //cuanto espera para pasar al próximo estado 
+      state = 0;
+      break;
+  }
+
+}
+
+void postToThingSpeak(String key, float value[]) {
+  Process p;
+  String cmd = "curl --data \"key="+key;
+  for (int i=0;i<ARRAYLENGTH;i++) {
+    cmd = cmd + "&field"+ (i+1) + "=" + value[i];
+  }
+  cmd = cmd + "\" http://api.thingspeak.com/update";
+  p.runShellCommand(cmd);
+  Console.println(cmd);
+  p.close();
+  }
+
+float promedioSonar(int n) {
+  float prom = 0;
+  int i = 0;
+  while (i < n){
+    unsigned int nivel_cm  = sonar.ping_cm();
+    prom = prom + nivel_cm;
+    i++;
+    delay(50);
+  }
+  return 20-prom/5;
+}
+
+void process(BridgeClient client) {
+  // read the command
+  String command = client.readStringUntil('/');
+
+  // is "digital" command?
+  if (command == "digital") {
+    digitalCommand(client);
+  }
+
+  // is "analog" command?
+  if (command == "analog") {
+    analogCommand(client);
+  }
+
+  // is "mode" command?
+  if (command == "mode") {
+    modeCommand(client);
+  }
+}
+
+void digitalCommand(BridgeClient client) {
+  int pin, value;
+
+  // Read pin number
+  pin = client.parseInt();
+
+  // If the next character is a '/' it means we have an URL
+  // with a value like: "/digital/13/1"
+  if (client.read() == '/') {
+    value = client.parseInt();
+    digitalWrite(pin, value);
+  } else {
+    value = digitalRead(pin);
+  }
+
+  // Send feedback to client
+  client.print(F("Pin D"));
+  client.print(pin);
+  client.print(F(" set to "));
+  client.println(value);
+
+  // Update datastore key with the current pin value
+  String key = "D";
+  key += pin;
+  Bridge.put(key, String(value));
+}
+
+void analogCommand(BridgeClient client) {
+  int pin, value;
+
+  // Read pin number
+  pin = client.parseInt();
+
+  // If the next character is a '/' it means we have an URL
+  // with a value like: "/analog/5/120"
+  if (client.read() == '/') {
+    // Read value and execute command
+    value = client.parseInt();
+    analogWrite(pin, value);
+
+    // Send feedback to client
+    client.print(F("Pin D"));
+    client.print(pin);
+    client.print(F(" set to analog "));
+    client.println(value);
+
+    // Update datastore key with the current pin value
+    String key = "D";
+    key += pin;
+    Bridge.put(key, String(value));
+  } else {
+    // Read analog pin
+    value = analogRead(pin);
+
+    // Send feedback to client
+    client.print(F("Pin A"));
+    client.print(pin);
+    client.print(F(" reads analog "));
+    client.println(value);
+
+    // Update datastore key with the current pin value
+    String key = "A";
+    key += pin;
+    Bridge.put(key, String(value));
+  }
+}
+
+void sonarCommand(BridgeClient client) {
+  int value, pin;
+   pin = 3;
+   value = promedioSonar(5);
+
+   client.print(F("Sonar set to "));
+   client.println(value);
+
+    String key = "A";
+    key += pin;
+    Bridge.put(key, String(value));
+  
+  
+}
+
+void modeCommand(BridgeClient client) {
+  int pin;
+
+  // Read pin number
+  pin = client.parseInt();
+
+  // If the next character is not a '/' we have a malformed URL
+  if (client.read() != '/') {
+    client.println(F("error"));
+    return;
+  }
+
+  String mode = client.readStringUntil('\r');
+
+  if (mode == "input") {
+    pinMode(pin, INPUT);
+    // Send feedback to client
+    client.print(F("Pin D"));
+    client.print(pin);
+    client.print(F(" configured as INPUT!"));
+    return;
+  }
+
+  if (mode == "output") {
+    pinMode(pin, OUTPUT);
+    // Send feedback to client
+    client.print(F("Pin D"));
+    client.print(pin);
+    client.print(F(" configured as OUTPUT!"));
+    return;
+  }
+
+  client.print(F("error: invalid mode "));
+  client.print(mode);
+}
+
+
+
+
